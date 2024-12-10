@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon CRUD</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      color: #ffcc00;
+      text-shadow: 2px 2px 2px #333;
+    }
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+    }
+    input, select, button {
+      margin: 5px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      background-color: #ffcc00;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #ffaa00;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #ffcc00;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pokémon CRUD</h1>
+  <div class="container">
+    <h2>Create Pokémon</h2>
+    <input type="text" id="name" placeholder="Name">
+    <input type="text" id="type" placeholder="Type">
+    <input type="number" id="level" placeholder="Level">
+    <button onclick="createPokemon()">Create</button>
+  </div>
+
+  <div class="container">
+    <h2>All Pokémon</h2>
+    <button onclick="getAllPokemon()">Refresh</button>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Level</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="pokemonTable"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const baseUrl = "http://localhost:3000/pokemon";
+
+    // Create Pokémon
+    async function createPokemon() {
+      const name = document.getElementById('name').value;
+      const type = document.getElementById('type').value;
+      const level = document.getElementById('level').value;
+
+      const response = await fetch(baseUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type, level }),
+      });
+
+      if (response.ok) {
+        alert('Pokémon created successfully!');
+        getAllPokemon();
+      } else {
+        alert('Failed to create Pokémon.');
+      }
+    }
+
+    // Get All Pokémon
+    async function getAllPokemon() {
+      const response = await fetch(baseUrl);
+      const pokemons = await response.json();
+
+      const tableBody = document.getElementById('pokemonTable');
+      tableBody.innerHTML = '';
+
+      pokemons.forEach((pokemon) => {
+        const row = `
+          <tr>
+            <td>${pokemon._id}</td>
+            <td>${pokemon.name}</td>
+            <td>${pokemon.type}</td>
+            <td>${pokemon.level}</td>
+            <td>
+              <button onclick="deletePokemon('${pokemon._id}')">Delete</button>
+              <button onclick="updatePokemon('${pokemon._id}')">Update</button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += row;
+      });
+    }
+
+    // Delete Pokémon
+    async function deletePokemon(id) {
+      const response = await fetch(`${baseUrl}/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        alert('Pokémon deleted successfully!');
+        getAllPokemon();
+      } else {
+        alert('Failed to delete Pokémon.');
+      }
+    }
+
+    // Update Pokémon
+    async function updatePokemon(id) {
+      const name = prompt('Enter new name:');
+      const type = prompt('Enter new type:');
+      const level = prompt('Enter new level:');
+
+      const response = await fetch(`${baseUrl}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, type, level }),
+      });
+
+      if (response.ok) {
+        alert('Pokémon updated successfully!');
+        getAllPokemon();
+      } else {
+        alert('Failed to update Pokémon.');
+      }
+    }
+
+    // Fetch all Pokémon on page load
+    getAllPokemon();
+  </script>
+</body>
+</html>
